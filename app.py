@@ -64,3 +64,9 @@ def saveAppointment(user_msg: UserMessage):
     json_response = re.search(r'```json\s*(\{.*?\})\s*```', response.text, re.DOTALL).group(1)
     savedAppointment = saveAppointments.saveAppointments(json_response,chatId)
     return {"status": "Appointment saved", "data": savedAppointment}
+
+
+@app.get("/getAllAppointments")
+def getAllAppointments():
+    with open('appointments.json','r') as f:
+        return json.load(f)
