@@ -2,7 +2,7 @@ import json,os
 
 file_path = "appointments.json"
 
-def saveAppointments(response,chatId):
+def saveAppointments(response):
     
 
     if os.path.exists(file_path):
@@ -15,8 +15,7 @@ def saveAppointments(response,chatId):
     else:
         appointments=[]
 
-    new_appointment=json.loads(response)
-    new_appointment["chat_id"] = chatId
+    new_appointment=response
     existing_appointment=False
     for i,appointment in enumerate(appointments):
         if appointment.get("chat_id") == new_appointment.get("chat_id"):

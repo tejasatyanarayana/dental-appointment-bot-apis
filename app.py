@@ -52,10 +52,10 @@ def chat_with_user(user_msg: UserMessage):
     if json_match:
         try:
             json_obj=json.loads(json_match.group(1))
-            json_obj.chat_id=chatId
+            json_obj['chat_id']=chatId
             required_fields = ["name", "appointment_type", "contact_number", "date", "time"]
             if all(json_obj.get(field) for field in required_fields):
-                saved = saveAppointments.saveAppointments(json_obj,chatId)
+                saved = saveAppointments.saveAppointments(json_obj)
                 auto_saved=True
         except Exception as e:
             print("Error extracting JSON:", e)
