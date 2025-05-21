@@ -43,30 +43,50 @@ def chat_with_user(user_msg: UserMessage):
     bot_reply = response.text
     history += f'\nYou:{user_msg.message}\n Neko:{bot_reply}'
     chat_histories[chatId]=history
-    return {"response": bot_reply}
+    
+    # for auto saving
+    auto_saved = False
+    saved = None
+    
+    json_match = re.search(r'```json\s*(\{.*?\})\s*```', bot_reply, re.DOTALL)
+    if json_match:
+        try:
+            json_obj=json.loads(json_match.group(1))
+            json_obj.chat_id=chatId
+            required_fields = ["name", "appointment_type", "contact_number", "date", "time"]
+            if all(json_obj.get(field) for field in required_fields):
+                saved = saveAppointments.saveAppointments(json_obj,chatId)
+                auto_saved=True
+        except Exception as e:
+            print("Error extracting JSON:", e)
+    
+     
+    return {"response": bot_reply,"auto_saved": auto_saved,
+        "saved_appointment": saved}
 
 
-@app.post("/save")
-def saveAppointment(user_msg: UserMessage):
-    chatId=user_msg.chatId
-    if chatId not in chat_histories:
-        return {"error": "No chat history found for this user."}
+# @app.post("/save")
+# def saveAppointment(user_msg: UserMessage):
+#     chatId=user_msg.chatId
+#     if chatId not in chat_histories:
+#         return {"error": "No chat history found for this user."}
     
-    chat_history=chat_histories[chatId]
+#     chat_history=chat_histories[chatId]
     
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=chat_history,
-        config= types.GenerateContentConfig(
-            system_instruction=prompt.prompt2)
+#     response = client.models.generate_content(
+#         model="gemini-2.0-flash",
+#         contents=chat_history,
+#         config= types.GenerateContentConfig(
+#             system_instruction=prompt.prompt2)
         
-    )
-    json_response = re.search(r'```json\s*(\{.*?\})\s*```', response.text, re.DOTALL).group(1)
-    savedAppointment = saveAppointments.saveAppointments(json_response,chatId)
-    return {"status": "Appointment saved", "data": savedAppointment}
+#     )
+#     json_response = re.search(r'```json\s*(\{.*?\})\s*```', response.text, re.DOTALL).group(1)
+#     savedAppointment = saveAppointments.saveAppointments(json_response,chatId)
+#     return {"status": "Appointment saved", "data": savedAppointment}
 
 
 @app.get("/getAllAppointments")
 def getAllAppointments():
     with open('appointments.json','r') as f:
         return json.load(f)
+    
