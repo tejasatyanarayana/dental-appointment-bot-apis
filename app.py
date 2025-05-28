@@ -6,6 +6,7 @@
 
 import json
 import re
+from fastapi.responses import JSONResponse
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
@@ -87,6 +88,14 @@ def chat_with_user(user_msg: UserMessage):
 
 @app.get("/getAllAppointments")
 def getAllAppointments():
-    with open('appointments.json','r') as f:
-        return json.load(f)
-    
+    try:
+        if os.path.getsize('appointments.json') ==0:
+            return JSONResponse(content=[],status_code=200)
+        with open('appointments.json','r') as f:
+            appointments = json.load(f)
+            return appointments if appointments else ''
+        
+    except FileNotFoundError:
+        return JSONResponse(content=[],status_code=200)
+        
+        
